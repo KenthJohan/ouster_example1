@@ -10,17 +10,61 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 
 #include "helpers.h"
-#include "ouster_client/impl/build.h"
-#include "ouster_client/client.h"
-#include "ouster_client/lidar_scan.h"
-#include "ouster_pcap/os_pcap.h"
-#include "ouster_client/types.h"
+#include <ouster_client/impl/build.h>
+#include <ouster_client/client.h>
+#include <ouster_client/lidar_scan.h>
+#include <ouster_client/impl/lidar_scan_impl.h>
+#include <ouster_pcap/os_pcap.h>
+#include <ouster_client/types.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+
+void save_png(Eigen::Ref<ouster::img_t<uint32_t>> range)
+{
+    int comp = 1;
+    int w = range.cols();
+    int h = range.rows();
+    uint8_t * data = (uint8_t *)malloc(w*h * comp);
+    uint32_t min = UINT32_MAX;
+    uint32_t max = 0;
+    for(int i = 0; i < h; ++i)
+    {
+        for(int j = 0; j < w; ++j)
+        {
+            auto a = range(i,j);
+            if(a < min){min = a;}
+            if(a > max){max = a;}
+        }
+    }
+    for(int i = 0; i < h; ++i)
+    {
+        for(int j = 0; j < w; ++j)
+        {
+            uint64_t a = range(i,j);
+            uint64_t b = a - min;
+            b = (b * 255) / ((max-min));
+            data[w*i + j] = b;
+        }
+    }
+    stbi_write_png("test.png", w, h, comp, data, w * comp);
+    free(data);
+}
+
+
 
 using namespace ouster::sensor;
 
 int main(int argc, char* argv[]) {
+    {
+        char cwd[1024] = {0};
+        getcwd(cwd, sizeof(cwd));
+        printf("Current working dir: %s\n", cwd);
+    }
     if (argc != 3) {
         std::cerr << "Version: " << ouster::SDK_VERSION_FULL << " ("
                   << ouster::BUILD_SYSTEM << ")"
@@ -97,6 +141,9 @@ int main(int argc, char* argv[]) {
     //! [doc-stag-lidarscan-cpp-fields]
     auto range = profile_scan.field(ChanField::RANGE);
     //! [doc-etag-lidarscan-cpp-fields]
+
+    auto x_destaggered = ouster::destagger<uint32_t>(range, info.format.pixel_shift_by_row);
+    save_png(x_destaggered);
 
     // On dual returns, second returns are often the same field name with 2
     // appended:

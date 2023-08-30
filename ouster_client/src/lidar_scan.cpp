@@ -16,6 +16,7 @@
 #include "ouster_client/impl/lidar_scan_impl.h"
 #include "ouster_client/types.h"
 
+
 namespace ouster {
 
 // clang-format off
