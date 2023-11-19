@@ -75,6 +75,24 @@
             "linux": {
                 "externalConsole": false,
             }
+        },
+        {
+            "name": "Launch view_tigr",
+            "type": "cppdbg",
+            "request": "launch",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/examples/view_tigr",
+            "environment": [],
+            "program": "${workspaceFolder}/examples/view_tigr/bin/x64-Linux-debug/view_tigr",
+            "args": ["192.168.1.137"],
+            "osx": {
+                "MIMode": "lldb",
+                "targetArchitecture": "arm64",
+                "externalConsole": false,
+            },
+            "linux": {
+                "externalConsole": false,
+            }
         }
     ]
 }
